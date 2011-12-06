@@ -10,7 +10,7 @@ lxc.network.ipv4 = <%= @guest[:ipv4] %>
 lxc.network.ipv6 = <%= @guest[:ipv6] %>
 <%- end %>
 lxc.rootfs = <%= @rootfs %>
-lxc.mount = <%= @home %>/ 'fstab'
+lxc.mount = <%= @home %>/fstab
 lxc.cgroup.devices.deny = a
 # /dev/null and zero
 lxc.cgroup.devices.allow = c 1:3 rwm
