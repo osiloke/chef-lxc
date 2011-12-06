@@ -115,44 +115,44 @@ machines.each do |guest|
   packages= guest[:packages] ||= host[:default][:packages]
   guest[:ipv4] ||= host[:default][:ipv4]
 
-  home = host[:base_directory] / guest[:id]
-  rootfs  =  home '/rootfs'
+  home = "#{host[:base_directory]}/guest[:id]"
+  rootfs  =  "#{home}/rootfs"  
 
   execute "debootstrap" do
     command "debootstrap --variant=#{variant} --include #{packages.join(',')} #{suite} #{rootfs} #{mirror}"
     action :run
-    not_if "test -f #{rootfs / 'etc' / 'issue'}"
+    not_if "test -f #{rootfs}/etc/issue"
   end
 
-  template home '/config' do
+  template "#{home}/config" do
     source "lxc.conf.erb"
     variables :host => host, :guest => guest, :home => home, :rootfs => rootfs, :hostname => hostname
     action :create
   end
 
-  template home '/fstab' do
+  template "#{home}/fstab" do
     source 'fstab.erb'
     variables :host => host, :guest => guest, :rootfs => rootfs, :hostname => hostname
     action :create
   end
 
-  file rootfs '/etc/inittab' do
+  file "#{rootfs}/etc/inittab" do
     action :delete
   end
 
-  file rootfs / 'etc' / 'hostname' do
+  file "#{rootfs}/etc/hostname" do
     backup false
     content hostname
     action :create
   end
 
-  file rootfs / 'etc' / 'hosts' do
+  file "#{rootfs}/etc/hosts" do
     backup false
     action :create
     content %Q~127.0.0.1 #{hostname} #{guest[:id]} localhost\n~
   end
 
-  template rootfs / 'etc' / 'apt' / 'sources.list' do
+  template "#{rootfs}/etc/apt/sources.list" do
     source 'rootfs/sources.list.erb'
     variables :host => host, :guest => guest
   end
@@ -166,7 +166,7 @@ machines.each do |guest|
   end
 
   bash 'remove pointless services' do
-    only_if %Q'test -f #{rootfs}/etc/rc0.d/S*umountfs'
+    only_if %Q"test -f #{rootfs}/etc/rc0.d/S*umountfs"
     code <<-EOSH
       chroot #{rootfs} /usr/sbin/update-rc.d -f umountfs remove
       chroot #{rootfs} /usr/sbin/update-rc.d -f hwclock.sh remove
@@ -176,40 +176,40 @@ machines.each do |guest|
     EOSH
   end
 
-  template rootfs / 'etc' / 'init' / 'vm.conf' do
+  template "#{rootfs}/etc/init/vm.conf" do
     source 'rootfs/init-vm.conf.erb'
     action :create
   end
 
-  template rootfs / 'etc' / 'init' / 'vm-net.conf' do
+  template "#{rootfs}/etc/init/vm-net.conf" do
     source 'rootfs/init-net.conf.erb'
     variables :host => node, :guest => guest
   end
 
-  template rootfs / 'etc' / 'init' / 'vm-power.conf' do
+  template "#{rootfs}/etc/init/vm-power.conf" do
     source 'rootfs/vm-power.conf.erb'
     variables :host => node
   end
 
-  template rootfs / 'usr' / 'sbin' / 'install-chef.sh' do
+  template "#{rootfs}/usr/sbin/install-chef.sh" do
     source 'rootfs/install-chef.sh.erb'
     variables :host => host, :guest => guest
     mode '0755'
   end
 
-  template rootfs / 'etc' / 'init' / 'chef-install.conf' do
+  template "#{rootfs}/etc/init/chef-install.conf" do
     source 'rootfs/chef-install.conf.erb'
     variables :host => host, :guest => guest
   end
 
-  directory rootfs / 'etc' / 'chef' do
+  directory "#{rootfs}/etc/chef" do
     action :create
     owner 'chef'
     group 'chef'
     mode '0755'
   end
 
-#  chef_private_key = rootfs / 'etc' / 'chef' / 'client.pem'
+#  chef_private_key = rootfs/etc'/chef'/client.pem'
 #  chef_archived_key = home / "chef-client.pem"
 #  execute "register vm at chef server" do
 #    command %Q~knife client -u #{node[:fqdn]} -k /etc/chef/client.pem --no-editor create #{hostname} -f #{chef_archived_key}~
@@ -241,7 +241,7 @@ machines.each do |guest|
   end
 
 
-  ssh_dir = home / 'ssh'
+  ssh_dir = "#{home}/ssh"
   execute "restore ssh host keys" do
     only_if "test -d #{ssh_dir}"
     command %Q~cp #{ssh_dir}/* #{rootfs}/etc/ssh/~
