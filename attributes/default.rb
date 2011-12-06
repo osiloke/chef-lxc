@@ -1,5 +1,5 @@
 set_unless[:container] = {
-  :base_directory => '/tmp/containers',
+  :base_directory => '/home/containers',
   :default => {
     :domain => "vm.local", 
     :variant => 'minbase',

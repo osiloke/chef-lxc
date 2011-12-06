@@ -115,7 +115,7 @@ machines.each do |guest|
   packages= guest[:packages] ||= host[:default][:packages]
   guest[:ipv4] ||= host[:default][:ipv4]
 
-  home = "#{host[:base_directory]}/guest[:id]"
+  home = "#{host[:base_directory]}/#{guest[:id]}"
   rootfs  =  "#{home}/rootfs"  
 
   execute "debootstrap" do
