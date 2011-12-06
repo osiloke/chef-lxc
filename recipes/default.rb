@@ -23,11 +23,11 @@ package 'inotify-tools'
 
 include_recipe 'lxc::manage'
 include_recipe 'lxc::network_bridge'
-include_recipe 'lxc::dns'
+#include_recipe 'lxc::dns'
 
 host = node[:container]
 
-machines = search(:virtual_machines, "host:#{node['fqdn']}")
+machines = search(:virtual_machines)
 
 directory host[:base_directory] do
   action :create
@@ -36,7 +36,7 @@ directory host[:base_directory] do
   group 'root'
 end
 
-template host[:base_directory] / 'main.conf' do
+template "#{host[:base_directory]}/main.conf" do
   source 'tools/main.conf.erb'
   mode '0644'
   owner 'root'
@@ -116,7 +116,7 @@ machines.each do |guest|
   guest[:ipv4] ||= host[:default][:ipv4]
 
   home = host[:base_directory] / guest[:id]
-  rootfs  =  home / 'rootfs'
+  rootfs  =  home '/rootfs'
 
   execute "debootstrap" do
     command "debootstrap --variant=#{variant} --include #{packages.join(',')} #{suite} #{rootfs} #{mirror}"
@@ -124,19 +124,19 @@ machines.each do |guest|
     not_if "test -f #{rootfs / 'etc' / 'issue'}"
   end
 
-  template home / 'config' do
+  template home '/config' do
     source "lxc.conf.erb"
     variables :host => host, :guest => guest, :home => home, :rootfs => rootfs, :hostname => hostname
     action :create
   end
 
-  template home / 'fstab' do
+  template home '/fstab' do
     source 'fstab.erb'
     variables :host => host, :guest => guest, :rootfs => rootfs, :hostname => hostname
     action :create
   end
 
-  file rootfs / 'etc' / 'inittab' do
+  file rootfs '/etc/inittab' do
     action :delete
   end
 
@@ -209,27 +209,27 @@ machines.each do |guest|
     mode '0755'
   end
 
-  chef_private_key = rootfs / 'etc' / 'chef' / 'client.pem'
-  chef_archived_key = home / "chef-client.pem"
-  execute "register vm at chef server" do
-    command %Q~knife client -u #{node[:fqdn]} -k /etc/chef/client.pem --no-editor create #{hostname} -f #{chef_archived_key}~
-    action :run
-    not_if "test -f #{chef_archived_key}"
-  end
+#  chef_private_key = rootfs / 'etc' / 'chef' / 'client.pem'
+#  chef_archived_key = home / "chef-client.pem"
+#  execute "register vm at chef server" do
+#    command %Q~knife client -u #{node[:fqdn]} -k /etc/chef/client.pem --no-editor create #{hostname} -f #{chef_archived_key}~
+#    action :run
+#    not_if "test -f #{chef_archived_key}"
+#  end
 
-  execute "archive chef private key" do
-    command %Q~cp #{chef_private_key} #{chef_archived_key}~
-    action :run
-    not_if "test -f #{chef_archived_key}"
-    only_if "test -f #{chef_private_key}"
-  end
+#  execute "archive chef private key" do
+#    command %Q~cp #{chef_private_key} #{chef_archived_key}~
+#    action :run
+#    not_if "test -f #{chef_archived_key}"
+#    only_if "test -f #{chef_private_key}"
+#  end
 
-  execute "restore chef private key" do
-    command %Q~cp #{chef_archived_key} #{chef_private_key}~
-    action :run
-    only_if "test -f #{chef_archived_key}"
-    not_if "test -f #{chef_private_key}"
-  end
+#  execute "restore chef private key" do
+#    command %Q~cp #{chef_archived_key} #{chef_private_key}~
+#    action :run
+#    only_if "test -f #{chef_archived_key}"
+#    not_if "test -f #{chef_private_key}"
+#  end
 
   # this only has to be done in ubuntu
   # If you want to read this, you will need popcorn!
