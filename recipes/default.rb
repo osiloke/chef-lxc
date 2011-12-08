@@ -203,12 +203,12 @@ machines.each do |guest|
     variables :host => host, :guest => guest
   end
 
-  directory "#{rootfs}/etc/chef" do
-    action :create
-    owner 'chef'
-    group 'chef'
-    mode '0755'
-  end
+  # directory "#{rootfs}/etc/chef" do
+  #   action :create
+  #   owner 'chef'
+  #   group 'chef'
+  #   mode '0755'
+  # end
 
 #  chef_private_key = "#{rootfs}/etc/chef/client.pem'
 #  chef_archived_key = home / "chef-client.pem"
